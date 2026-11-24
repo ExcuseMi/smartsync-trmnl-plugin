@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests, lint, release build
+        run: ./gradlew --no-daemon :plugin-api:testDebugUnitTest :plugin:testDebugUnitTest :plugin:lintDebug :plugin:assembleRelease
+
+      - name: Payload size of a full day
+        if: always()
+        run: |
+          f=plugin/build/test-results/testDebugUnitTest/TEST-org.avmedia.smartsync.plugin.trmnl.PayloadTest.xml
+          [ -f "$f" ] && grep -o 'full day request: [0-9]* bytes' "$f" || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports
+          path: |
+            plugin/build/reports
+            plugin/build/outputs/aar
+          if-no-files-found: ignore

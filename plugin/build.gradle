@@ -1,0 +1,74 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    id 'maven-publish'
+}
+
+// Tag v<version>. TrmnlPlugin.VERSION states the same (VersionTest).
+version = '0.1.0'
+group = 'com.github.ExcuseMi'
+
+android {
+    namespace = 'org.avmedia.smartsync.plugin.trmnl'
+    compileSdk = 37
+
+    defaultConfig {
+        minSdk = 26
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    buildFeatures {
+        compose = true
+    }
+
+    lint {
+        warningsAsErrors = false
+        abortOnError = true
+    }
+
+    testOptions {
+        unitTests {
+            all { testLogging { exceptionFormat = 'full'; events 'failed' } }
+        }
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+}
+
+dependencies {
+    // The host app provides the interface at run time: compile against it, never ship a second copy.
+    compileOnly(project(':plugin-api'))
+    testImplementation(project(':plugin-api'))
+
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.compose.runtime)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.foundation)
+    implementation(libs.material3)
+    implementation(libs.kotlinx.coroutines.core)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = project.group
+                artifactId = 'smartsync-trmnl-plugin'
+                version = project.version
+            }
+        }
+    }
+}
