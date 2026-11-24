@@ -64,7 +64,9 @@ watch did not give is left out, never sent as 0.
 | `ra` | health log recorded at (watch local time) |
 | `td` | tide values, when the app has them |
 
-Sizes (CI, `PayloadTest`): see "Payload sizes" below.
+Sizes (CI, `PayloadTest`): a full day of one watch (24 hourly steps, a 2 minute heart rate log as a 96 entry curve,
+every value) is 859 bytes as a request, 17 % of the standard limit. Four watches on one URL fit 3000 bytes with a 30 or
+60 minute curve.
 
 ## Build
 
