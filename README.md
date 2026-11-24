@@ -1,3 +1,5 @@
+> **Moved:** this plugin now lives in [ExcuseMi/smartsync-plugins](https://github.com/ExcuseMi/smartsync-plugins) (module `trmnl/`), with its history. This repository is archived.
+
 # Smart Sync TRMNL plugin
 
 A plugin for the G-Shock Smart Sync app (ExcuseMi/CasioGShockSmartSync, plugin interface `plugin-api`). It pushes each
