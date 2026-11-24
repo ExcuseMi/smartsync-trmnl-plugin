@@ -87,7 +87,8 @@ class Sender(
             status = SendStatus(lastSentMillis = now)
             return null
         }
-        val until = gate.failed(now, kind, result.retryAfterSec, reachedServer = result.code > 0)
+        gate.failed(now, kind, result.retryAfterSec, reachedServer = result.code > 0)
+        val until = gate.nextAllowed(settings.intervalMillis)
         if (gate.firstOfKind) {
             val why = result.message?.let { ": $it" }.orEmpty()
             val code = if (result.code > 0) "HTTP ${result.code}" else "no answer"
@@ -141,10 +142,10 @@ internal class Gate(private val s: PluginStorage, id: String) {
     }
 
     /**
-     * Returns when the next request may go. A request that reached the server counts against TRMNL's limit too, so
+     * Records a failure and when the next request may go. A request that reached the server counts against TRMNL's limit too, so
      * the interval applies after it as well; one that found no network does not.
      */
-    fun failed(now: Long, kind: FailureKind, retryAfterSec: Long?, reachedServer: Boolean): Long {
+    fun failed(now: Long, kind: FailureKind, retryAfterSec: Long?, reachedServer: Boolean) {
         val fails = (s.get(kFails)?.toIntOrNull() ?: 0) + 1
         firstOfKind = s.get(kKind) != kind.name
         val until = now + kind.delayMillis(fails, retryAfterSec)
@@ -152,6 +153,5 @@ internal class Gate(private val s: PluginStorage, id: String) {
         s.put(kFails, fails.toString())
         s.put(kKind, kind.name)
         s.put(kUntil, until.toString())
-        return until
     }
 }
